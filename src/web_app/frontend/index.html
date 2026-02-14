@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comic-Crawler 下载器 - Kavita Style</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: '#4ac694',
+                            dark: '#3B9E76',
+                            darker: '#338A67',
+                            darkest: '#25624A'
+                        },
+                        surface: {
+                            DEFAULT: '#1f2020',
+                            light: '#2a2b2b',
+                            lighter: '#353636'
+                        },
+                        accent: {
+                            DEFAULT: '#6366f1',
+                            red: '#ef4444',
+                            green: '#22c55e',
+                            yellow: '#f59e0b',
+                            blue: '#3b82f6'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --primary-color: #4ac694;
+            --primary-color-dark: #3B9E76;
+            --bg-color: #1f2020;
+            --card-bg: #2a2b2b;
+            --border-color: #353636;
+            --text-primary: #efefef;
+            --text-secondary: rgba(239, 239, 239, 0.6);
+        }
+        
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) transparent;
+        }
+        
+        *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        *::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        *::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+        }
+        
+        .nav-item {
+            transition: all 0.2s ease;
+        }
+        
+        .nav-item:hover {
+            background-color: rgba(74, 198, 148, 0.1);
+        }
+        
+        .nav-item.active {
+            background-color: rgba(74, 198, 148, 0.2);
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .card:hover {
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
+            color: white;
+            font-weight: 500;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(74, 198, 148, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: var(--border-color);
+            color: var(--text-primary);
+            font-weight: 500;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #454646;
+        }
+        
+        .input-field {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 198, 148, 0.1);
+        }
+        
+        .input-field::placeholder {
+            color: var(--text-secondary);
+        }
+        
+        .log-container {
+            background-color: #121212;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        
+        .log-item {
+            padding: 4px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .log-item:last-child {
+            border-bottom: none;
+        }
+        
+        .log-info { color: #3b82f6; }
+        .log-success { color: #22c55e; }
+        .log-warning { color: #f59e0b; }
+        .log-error { color: #ef4444; }
+        
+        .progress-bar {
+            height: 4px;
+            background-color: var(--border-color);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-color-dark));
+            transition: width 0.3s ease;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .sidebar {
+            width: 240px;
+            min-width: 240px;
+        }
+        
+        .main-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -240px;
+                top: 0;
+                bottom: 0;
+                z-index: 50;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.open {
+                left: 0;
+            }
+            
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 40;
+            }
+            
+            .sidebar-overlay.open {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-surface text-gray-100">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar bg-surface-light border-r border-surface-lighter flex flex-col">
+            <!-- Logo -->
+            <div class="p-6 border-b border-surface-lighter">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+                        <i class="fas fa-book-open text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-semibold text-white">Comic-Crawler</h1>
+                        <p class="text-xs text-gray-400">v1.0.0</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex-1 p-4">
+                <ul class="space-y-1">
+                    <li>
+                        <a href="#" class="nav-item active flex items-center gap-3 px-4 py-3 rounded-lg text-gray-200" data-page="download">
+                            <i class="fas fa-download w-5 text-center text-primary"></i>
+                            <span>下载管理</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-gray-200" data-page="kavita">
+                            <i class="fas fa-box-archive w-5 text-center"></i>
+                            <span>Kavita 打包</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-gray-200" data-page="settings">
+                            <i class="fas fa-cog w-5 text-center"></i>
+                            <span>设置</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <!-- Status -->
+            <div class="p-4 border-t border-surface-lighter">
+                <div class="flex items-center gap-2 text-sm">
+                    <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                    <span class="text-gray-400">API 状态: </span>
+                    <span id="api-status" class="text-primary">已连接</span>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Mobile Sidebar Overlay -->
+        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+        
+        <!-- Main Content -->
+        <main class="main-content flex flex-col">
+            <!-- Header -->
+            <header class="bg-surface-light border-b border-surface-lighter px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <button id="menu-toggle" class="md:hidden p-2 rounded-lg hover:bg-surface-lighter">
+                            <i class="fas fa-bars text-gray-400"></i>
+                        </button>
+                        <h2 id="page-title" class="text-xl font-semibold">下载管理</h2>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span id="connection-indicator" class="flex items-center gap-2 text-sm text-gray-400">
+                            <i class="fas fa-circle text-green-500 text-xs"></i>
+                            已连接
+                        </span>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Page Content -->
+            <div class="flex-1 overflow-auto p-6">
+                <!-- Download Page -->
+                <div id="page-download" class="page-content fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Input Card -->
+                        <div class="card p-6">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                                <i class="fas fa-list-ol text-primary"></i>
+                                专辑列表
+                            </h3>
+                            <textarea id="album-ids" class="input-field h-48 resize-none" placeholder="输入专辑ID，每行一个&#10;支持格式: 123456 或 JM123456"></textarea>
+                            <div class="mt-4 flex items-center gap-4">
+                                <button id="btn-download" class="btn-primary flex items-center gap-2">
+                                    <i class="fas fa-download"></i>
+                                    开始下载
+                                </button>
+                                <button id="btn-clear" class="btn-secondary flex items-center gap-2">
+                                    <i class="fas fa-trash"></i>
+                                    清空
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Settings Card -->
+                        <div class="card p-6">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                                <i class="fas fa-sliders text-primary"></i>
+                                下载设置
+                            </h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-2">下载路径</label>
+                                    <div class="flex gap-2">
+                                        <input id="download-path" type="text" class="input-field flex-1" placeholder="选择下载目录">
+                                        <button id="btn-browse-download" class="btn-secondary px-4">
+                                            <i class="fas fa-folder-open"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-2">并发线程数: <span id="thread-value">5</span></label>
+                                    <input id="thread-count" type="range" min="1" max="20" value="5" class="w-full accent-primary">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm text-gray-400 mb-2">图片格式</label>
+                                        <select id="image-format" class="input-field">
+                                            <option value=".jpg">JPG</option>
+                                            <option value=".png">PNG</option>
+                                            <option value=".webp">WebP</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm text-gray-400 mb-2">客户端类型</label>
+                                        <select id="client-type" class="input-field">
+                                            <option value="html">网页端</option>
+                                            <option value="api">移动端</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Card -->
+                    <div id="download-progress" class="card p-6 mt-6 hidden">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold flex items-center gap-2">
+                                <i class="fas fa-spinner fa-spin text-primary"></i>
+                                下载进度
+                            </h3>
+                            <span id="download-status" class="text-sm text-gray-400">准备中...</span>
+                        </div>
+                        <div class="progress-bar mb-4">
+                            <div id="download-progress-bar" class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 text-center">
+                            <div class="bg-surface rounded-lg p-3">
+                                <div id="download-total" class="text-2xl font-bold text-primary">0</div>
+                                <div class="text-sm text-gray-400">总数</div>
+                            </div>
+                            <div class="bg-surface rounded-lg p-3">
+                                <div id="download-completed" class="text-2xl font-bold text-green-500">0</div>
+                                <div class="text-sm text-gray-400">已完成</div>
+                            </div>
+                            <div class="bg-surface rounded-lg p-3">
+                                <div id="download-failed" class="text-2xl font-bold text-red-500">0</div>
+                                <div class="text-sm text-gray-400">失败</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Log Cards -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                        <!-- 运行日志 -->
+                        <div class="card p-6">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                                <i class="fas fa-clipboard-list text-primary"></i>
+                                运行日志
+                            </h3>
+                            <div id="download-log" class="log-container h-64 overflow-auto">
+                                <div class="log-item log-info">
+                                    <span class="text-gray-500">[系统]</span> 系统就绪，等待操作...
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 终端输出 -->
+                        <div class="card p-6">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                                <i class="fas fa-code text-primary"></i>
+                                终端输出
+                            </h3>
+                            <div id="download-terminal" class="log-container h-64 overflow-auto bg-black font-mono text-sm">
+                                <div class="log-item text-green-400">
+                                    &gt; 等待执行任务...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Kavita Page -->
+                <div id="page-kavita" class="page-content hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Info Card -->
+                        <div class="card p-6">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                                <i class="fas fa-info-circle text-primary"></i>
+                                功能说明
+                            </h3>
+                            <p class="text-gray-400 leading-relaxed">
+                                实现一键转化为CBZ格式，方便阅读。CBZ是漫画阅读器（如Kavita、Komga、Calibre）广泛支持的格式，
+                                将下载的漫画图片打包成单个文件，便于管理和阅读。
+                            </p>
+                            <div class="mt-4 p-4 bg-surface rounded-lg">
+                                <h4 class="text-sm font-semibold text-primary mb-2">使用步骤</h4>
+                                <ol class="text-sm text-gray-400 space-y-2">
+                                    <li>1. 选择包含专辑子目录的源目录</li>
+                                    <li>2. 选择CBZ文件输出目录</li>
+                                    <li>3. 点击"开始打包"按钮</li>
+                                    <li>4. 等待打包完成后导入Kavita</li>
+                                </ol>
+                            </div>
+                        </div>
+                        
+                        <!-- Pack Settings Card -->
+                        <div class="card p-6">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                                <i class="fas fa-cog text-primary"></i>
+                                打包设置
+                            </h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-2">源目录</label>
+                                    <div class="flex gap-2">
+                                        <input id="pack-source" type="text" class="input-field flex-1" placeholder="选择源目录">
+                                        <button id="btn-browse-source" class="btn-secondary px-4">
+                                            <i class="fas fa-folder-open"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-2">输出目录</label>
+                                    <div class="flex gap-2">
+                                        <input id="pack-output" type="text" class="input-field flex-1" placeholder="选择输出目录">
+                                        <button id="btn-browse-output" class="btn-secondary px-4">
+                                            <i class="fas fa-folder-open"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input id="pack-overwrite" type="checkbox" checked class="w-4 h-4 accent-primary">
+                                        <span class="text-sm text-gray-400">覆盖已存在的CBZ文件</span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-2">压缩级别: <span id="compress-value">1</span></label>
+                                    <input id="compress-level" type="range" min="0" max="9" value="1" class="w-full accent-primary">
+                                    <p class="text-xs text-gray-500 mt-1">0=无压缩，1=最快，9=最小体积</p>
+                                </div>
+                                <div class="flex gap-4 pt-4">
+                                    <button id="btn-pack" class="btn-primary flex items-center gap-2 flex-1">
+                                        <i class="fas fa-box-archive"></i>
+                                        开始打包
+                                    </button>
+                                    <button id="btn-save-kavita" class="btn-secondary flex items-center gap-2">
+                                        <i class="fas fa-save"></i>
+                                        保存设置
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pack Progress -->
+                    <div id="pack-progress" class="card p-6 mt-6 hidden">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold flex items-center gap-2">
+                                <i class="fas fa-spinner fa-spin text-primary"></i>
+                                打包进度
+                            </h3>
+                            <span id="pack-status" class="text-sm text-gray-400">准备中...</span>
+                        </div>
+                        <div class="progress-bar mb-4">
+                            <div id="pack-progress-bar" class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 text-center">
+                            <div class="bg-surface rounded-lg p-3">
+                                <div id="pack-total" class="text-2xl font-bold text-primary">0</div>
+                                <div class="text-sm text-gray-400">总数</div>
+                            </div>
+                            <div class="bg-surface rounded-lg p-3">
+                                <div id="pack-success" class="text-2xl font-bold text-green-500">0</div>
+                                <div class="text-sm text-gray-400">成功</div>
+                            </div>
+                            <div class="bg-surface rounded-lg p-3">
+                                <div id="pack-failed" class="text-2xl font-bold text-red-500">0</div>
+                                <div class="text-sm text-gray-400">失败</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pack Log Cards -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                        <!-- 打包日志 -->
+                        <div class="card p-6">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                                <i class="fas fa-clipboard-list text-primary"></i>
+                                打包日志
+                            </h3>
+                            <div id="pack-log" class="log-container h-64 overflow-auto">
+                                <div class="log-item log-info">
+                                    <span class="text-gray-500">[系统]</span> 系统就绪，等待操作...
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 终端输出 -->
+                        <div class="card p-6">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                                <i class="fas fa-code text-primary"></i>
+                                终端输出
+                            </h3>
+                            <div id="pack-terminal" class="log-container h-64 overflow-auto bg-black font-mono text-sm">
+                                <div class="log-item text-green-400">
+                                    &gt; 等待执行任务...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settings Page -->
+                <div id="page-settings" class="page-content hidden">
+                    <div class="max-w-2xl mx-auto">
+                        <div class="card p-6">
+                            <h3 class="text-lg font-semibold mb-6 flex items-center gap-2">
+                                <i class="fas fa-cog text-primary"></i>
+                                全局设置
+                            </h3>
+                            <div class="space-y-6">
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-2">默认下载路径</label>
+                                    <div class="flex gap-2">
+                                        <input id="settings-download-path" type="text" class="input-field flex-1" placeholder="默认下载路径">
+                                        <button id="btn-browse-settings-download" class="btn-secondary px-4">
+                                            <i class="fas fa-folder-open"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-2">默认并发线程数</label>
+                                    <input id="settings-thread-count" type="number" min="1" max="20" value="5" class="input-field">
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-2">默认图片格式</label>
+                                    <select id="settings-image-format" class="input-field">
+                                        <option value=".jpg">JPG</option>
+                                        <option value=".png">PNG</option>
+                                        <option value=".webp">WebP</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-2">默认客户端类型</label>
+                                    <select id="settings-client-type" class="input-field">
+                                        <option value="html">网页端</option>
+                                        <option value="api">移动端</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-400 mb-2">Kavita 输出目录</label>
+                                    <div class="flex gap-2">
+                                        <input id="settings-kavita-output" type="text" class="input-field flex-1" placeholder="Kavita CBZ 输出目录">
+                                        <button id="btn-browse-settings-kavita" class="btn-secondary px-4">
+                                            <i class="fas fa-folder-open"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="pt-4 flex gap-4">
+                                    <button id="btn-save-settings" class="btn-primary flex items-center gap-2">
+                                        <i class="fas fa-save"></i>
+                                        保存设置
+                                    </button>
+                                    <button id="btn-reset-settings" class="btn-secondary flex items-center gap-2">
+                                        <i class="fas fa-undo"></i>
+                                        恢复默认
+                                    </button>
+                                </div>
+                                <hr class="my-6 border-surface-lighter">
+                                <div>
+                                    <h4 class="text-sm font-semibold text-red-500 mb-4 flex items-center gap-2">
+                                        <i class="fas fa-power-off"></i>
+                                        服务管理
+                                    </h4>
+                                    <p class="text-sm text-gray-400 mb-4">停止后端和前端服务，关闭后需要重新运行 start.bat</p>
+                                    <button id="btn-stop-service" class="flex items-center gap-2 w-full justify-center bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/50 rounded-lg py-3 px-4 font-medium transition-colors">
+                                        <i class="fas fa-stop-circle"></i>
+                                        停止服务
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- About Card -->
+                        <div class="card p-6 mt-6">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                                <i class="fas fa-info-circle text-primary"></i>
+                                关于
+                            </h3>
+                            <div class="text-gray-400 space-y-2">
+                                <p><strong class="text-gray-200">版本:</strong> 1.0.0</p>
+                                <p><strong class="text-gray-200">前端:</strong> Tailwind CSS + Vanilla JS</p>
+                                <p><strong class="text-gray-200">后端:</strong> Python FastAPI</p>
+                                <p><strong class="text-gray-200">UI风格:</strong> Kavita</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- File Browser Modal -->
+    <div id="browser-modal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center">
+        <div class="card w-full max-w-2xl mx-4 max-h-[80vh] flex flex-col">
+            <div class="p-4 border-b border-surface-lighter flex items-center justify-between">
+                <h3 class="text-lg font-semibold">选择目录</h3>
+                <button id="close-browser" class="p-2 hover:bg-surface-lighter rounded-lg">
+                    <i class="fas fa-times text-gray-400"></i>
+                </button>
+            </div>
+            <div class="p-4 border-b border-surface-lighter">
+                <div class="flex items-center gap-3">
+                    <button id="browser-back" class="btn-secondary px-3 py-2 text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-arrow-left"></i>
+                        上级目录
+                    </button>
+                    <button id="browser-home" class="btn-primary px-3 py-2 text-sm flex items-center gap-2">
+                        <i class="fas fa-desktop"></i>
+                        此电脑
+                    </button>
+                    <div class="flex items-center gap-2 text-sm flex-1">
+                        <i id="browser-path-icon" class="fas fa-folder text-primary"></i>
+                        <span id="browser-current-path" class="text-gray-400">此电脑</span>
+                    </div>
+                </div>
+            </div>
+            <div id="browser-list" class="flex-1 overflow-auto p-4">
+                <!-- Directory items will be populated here -->
+            </div>
+            <div class="p-4 border-t border-surface-lighter flex justify-end gap-4">
+                <button id="browser-cancel" class="btn-secondary">取消</button>
+                <button id="browser-select" class="btn-primary">选择当前目录</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
