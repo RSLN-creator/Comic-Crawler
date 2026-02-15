@@ -107,7 +107,7 @@ cd Comic-Crawler
 
 ```bash
 # 安装项目依赖
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 ### 第四步：启动应用
