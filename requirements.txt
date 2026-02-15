@@ -1,6 +1,8 @@
-fastapi
-uvicorn
-python-multipart
 pydantic
 pydantic-settings
 httpx
+curl_cffi
+commonX
+PyYAML
+Pillow
+pycryptodome
