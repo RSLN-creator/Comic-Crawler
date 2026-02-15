@@ -98,7 +98,6 @@ app.add_middleware(
 
 download_tasks: Dict[str, Dict] = {}
 pack_tasks: Dict[str, Dict] = {}
-terminal_outputs: Dict[str, List[str]] = {}
 
 
 class DownloadRequest(BaseModel):

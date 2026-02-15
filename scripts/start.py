@@ -45,8 +45,7 @@ def start_backend():
     cmd = [
         sys.executable, "-m", "uvicorn", "api_server:app",
         "--host", "0.0.0.0",
-        "--port", str(BACKEND_PORT),
-        "--reload"
+        "--port", str(BACKEND_PORT)
     ]
     return subprocess.Popen(cmd)
 
@@ -59,10 +58,7 @@ def start_frontend():
     
     print(f"[INFO] 启动前端服务在 http://localhost:{FRONTEND_PORT}")
     
-    if platform.system() == "Windows":
-        cmd = [sys.executable, "-m", "http.server", str(FRONTEND_PORT)]
-    else:
-        cmd = ["python3", "-m", "http.server", str(FRONTEND_PORT)]
+    cmd = [sys.executable, "-m", "http.server", str(FRONTEND_PORT)]
     
     return subprocess.Popen(cmd)
 
