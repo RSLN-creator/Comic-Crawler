@@ -42,15 +42,17 @@ Comic-Crawler/
 │   └── web_app/                      # Web 应用
 │       ├── backend/                   # FastAPI 后端
 │       └── frontend/                  # 静态前端
-├── config/                           # 配置文件
-├── data/                             # 数据目录
+├── data/                             # 数据目录（自动创建）
 │   ├── downloads/                    # 漫画下载目录
 │   └── cbz_output/                   # CBZ 打包输出目录
 ├── scripts/                          # 脚本文件
 │   └── start.py                      # 跨平台启动脚本
-├── docs/                             # 文档目录
-├── tests/                            # 测试代码
 ├── README.md                         # 项目说明文档
+├── CHANGELOG.md                      # 版本变更日志
+├── RELEASE.md                        # 发布说明
+├── HOW_TO_RELEASE.md                 # 发布指南
+├── RELEASE_PLAN.md                   # 发布计划
+├── pyproject.toml                    # 项目配置
 ├── requirements.txt                  # Python 依赖文件
 ├── start.bat                         # Windows 启动脚本
 ├── end.bat                           # Windows 停止服务脚本
