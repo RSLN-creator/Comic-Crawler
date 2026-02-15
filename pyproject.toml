@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "comic-crawler"
-version = "1.0.0"
+version = "1.0.1"
 description = "基于 Kavita UI 风格的现代化漫画下载器应用"
 readme = "README.md"
 requires-python = ">=3.8"

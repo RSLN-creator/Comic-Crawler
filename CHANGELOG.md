@@ -42,6 +42,22 @@
 
 ---
 
+## [1.0.1] - 2026-02-15
+
+### 🐛 修复
+- 修复 api_server.py 中 terminal_outputs 重复定义的严重Bug
+- 修复 start.bat 中 Python 命令检测问题（支持 py 和 python 命令自动检测）
+- 修复跨平台启动脚本的兼容性问题
+- 解决 API 连接不稳定的问题（"已连接-未连接"的波动问题）
+
+### 🔧 改进
+- start.bat 现在会自动检测可用的 Python 命令（py 或 python）
+- 简化了启动流程，确保完整安装后端依赖
+- 使用 sys.executable 确保跨平台 Python 解释器兼容性
+- 移除了开发文档（HOW_TO_RELEASE.md、RELEASE_PLAN.md、RELEASE.md）
+
+---
+
 ## [未发布]
 
 ### 计划中
@@ -52,4 +68,5 @@
 
 ---
 
+[1.0.1]: https://github.com/RSLN-creator/Comic-Crawler/releases/tag/v1.0.1
 [1.0.0]: https://github.com/RSLN-creator/Comic-Crawler/releases/tag/v1.0.0
