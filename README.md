@@ -2,6 +2,16 @@
 
 基于 Kavita UI 风格的现代化漫画下载器应用，采用 "静态前端 + Python FastAPI 后端" 的现代轻量架构。
 
+## 应用截图
+
+### 下载管理页面
+
+![下载管理页面](assets/images/show_1.png)
+
+### Kavita 打包页面
+
+![Kavita 打包页面](assets/images/show_2.png)
+
 ## 功能特性
 
 - **下载管理**: 批量下载漫画专辑，支持 JM 前缀 ID
